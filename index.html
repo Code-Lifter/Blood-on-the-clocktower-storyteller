@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Clocktower Storyteller Companion</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <main class="container" role="main">
+      <header class="header">
+        <img id="scriptLogo" class="script-logo" alt="" hidden />
+        <h1>Clocktower Storyteller Companion</h1>
+        <p class="sub" id="scriptTitle">Loading characters…</p>
+        <div class="header-actions">
+          <button id="tableViewBtn" type="button" class="ghost">Show the table</button>
+          <button id="scriptSheetBtn" type="button" class="ghost">Script sheet</button>
+          <button id="newGameBtn" type="button" class="ghost">New game</button>
+        </div>
+      </header>
+
+      <div id="loadError" class="card error" hidden></div>
+
+      <!-- ============================ SETUP ============================ -->
+      <section id="setupSection" hidden>
+        <section class="card" id="scriptCard">
+          <h2>1. Choose a script</h2>
+          <div id="scriptChoices" class="chip-row"></div>
+          <details id="addScript" class="add-script">
+            <summary>Add a script (paste or drop a .json file)</summary>
+            <p class="muted">Use the JSON from the official Script Tool, or any custom/homebrew script in the same format.</p>
+            <div id="dropZone" class="drop-zone">Drop a .json file here, or <label class="link">choose a file<input id="scriptFile" type="file" accept=".json,application/json" hidden /></label></div>
+            <textarea id="scriptPaste" rows="5" placeholder='[{"id":"_meta","name":"My Script"},"washerwoman","librarian","imp"]'></textarea>
+            <div class="actions"><button id="addScriptBtn" type="button">Add script</button></div>
+            <p id="addScriptMsg" class="muted"></p>
+          </details>
+          <div id="scriptInfo"></div>
+        </section>
+
+        <section class="card" id="playersCard">
+          <h2>2. Players <span class="muted small">in seating order, going clockwise</span></h2>
+          <div class="row">
+            <textarea id="playerInput" rows="2" placeholder="Names, separated by commas or new lines"></textarea>
+            <button id="addPlayersBtn" type="button">Add</button>
+          </div>
+          <ol id="seatList" class="seat-list"></ol>
+          <div id="countsDisplay" class="counts"></div>
+        </section>
+
+        <section class="card" id="bagCard">
+          <h2>3. Characters in play</h2>
+          <p class="muted small">Tick the characters going in the bag. The numbers show how many of each type you need.</p>
+          <div class="actions">
+            <button id="randomBagBtn" type="button" class="ghost">🎲 Random characters</button>
+            <button id="clearBagBtn" type="button" class="ghost">Clear</button>
+          </div>
+          <p id="randomBagMsg" class="muted small"></p>
+          <div id="bag" class="roles"></div>
+          <div id="setupNotes"></div>
+        </section>
+
+        <section class="card" id="assignCard">
+          <h2>4. Who is who</h2>
+          <div class="actions"><button id="dealBtn" type="button" class="ghost">🎲 Deal randomly</button></div>
+          <div id="assignList"></div>
+          <h3>Demon bluffs <span class="muted small">3 good characters not in play</span></h3>
+          <div id="bluffs" class="row wrap"></div>
+          <div class="actions">
+            <button id="suggestBluffsBtn" type="button" class="ghost">Suggest bluffs</button>
+          </div>
+          <div id="setupProblems"></div>
+          <div class="actions big-actions">
+            <button id="startGameBtn" type="button">Start the first night</button>
+          </div>
+        </section>
+      </section>
+
+      <!-- ============================ GAME ============================ -->
+      <section id="gameSection" hidden>
+        <div id="warnings"></div>
+
+        <section class="card" id="grimoireCard">
+          <div class="card-head">
+            <h2>Grimoire</h2>
+            <button id="hideIdBtn" type="button" class="ghost" aria-pressed="false">🙈 Hide identities</button>
+          </div>
+          <p class="muted small" id="grimoireHelp">Tap a player to change their status, character or reminders.</p>
+          <div id="grimoire" class="grim-circle"></div>
+        </section>
+
+        <section class="card" id="phaseCard"></section>
+
+        <section class="card">
+          <details id="logBlock">
+            <summary><h2>Game log</h2></summary>
+            <ol id="logList" class="log-list"></ol>
+          </details>
+        </section>
+      </section>
+
+      <footer class="footer">
+        <img id="cccLogo" alt="Community Created Content" />
+        <p>Fan-made and free. Not an official product of The Pandemonium Institute.<br />
+          Blood on the Clocktower, its characters and artwork belong to The Pandemonium Institute.</p>
+      </footer>
+    </main>
+
+    <!-- Step card: what you show a player at night -->
+    <div id="textCard" class="overlay" aria-hidden="true">
+      <div class="inner" id="textCardInner"></div>
+    </div>
+
+    <!-- Picker: choose players or characters -->
+    <div id="picker" class="picker" aria-hidden="true">
+      <div class="picker-panel" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+        <div class="picker-head">
+          <h3 id="pickerTitle">Pick</h3>
+          <input id="pickerSearch" type="text" placeholder="Search…" autocomplete="off" />
+        </div>
+        <div id="pickerList" class="picker-list" role="listbox"></div>
+        <div class="picker-actions">
+          <span id="pickerCount" class="muted"></span>
+          <button id="pickerCancel" type="button" class="ghost">Cancel</button>
+          <button id="pickerOk" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player sheet -->
+    <div id="playerSheet" class="picker" aria-hidden="true">
+      <div class="picker-panel sheet" role="dialog" aria-modal="true" id="playerSheetInner"></div>
+    </div>
+
+    <!-- Table view: safe to show everyone -->
+    <div id="tableView" class="overlay table-view" aria-hidden="true">
+      <div class="table-inner" id="tableViewInner"></div>
+    </div>
+
+    <!-- Undo / redo, always in reach -->
+    <div class="history-bar" role="toolbar" aria-label="Undo and redo">
+      <button id="undoBtn" type="button" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶ Undo</button>
+      <button id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" aria-label="Redo" disabled>Redo ↷</button>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="js/app.js" type="module"></script>
+  </body>
+</html>
